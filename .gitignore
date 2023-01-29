@@ -24,7 +24,8 @@ build/Release
 # see https://npmjs.org/doc/faq.html#Should-I-check-my-node_modules-folder-into-git
 node_modules
 
-secrets.js
+# I added secrets.js to the commit so that I can track my progress.
+# secrets.js
 
 # .DS_Store
 *.DS_Store
