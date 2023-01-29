@@ -12,7 +12,41 @@ module.exports = function(router, requireLogin, requireRole) {
 
   // user login and use session cookies
   router.post('/api/users/login', function(req, res, next) {
-
+    const { username, password } = req.body;
+    var projection = {
+      username: 1, password_salt: 1, password_hash: 1, roles: 1
+    }
+    User.findOne({username:username}, projection).exec((err, user) => {
+      if(user && user.authenticate(password)) {
+        logger.debug("authenticated!");
+        req.login(user, function(err) {
+          if(err) {
+            logger.error("ERROR LOGGING IN NEW USER");
+            logger.error(err);
+            return next(err);
+          } else {
+            // check if this is coming from mobile & requires a token in response
+            if(req.param("withToken")) {
+              logger.info("create api token for mobile user");
+              user.createToken(function(err, token) {
+                if(err || !token) {
+                  res.send({ success: false, message: "unable to generate user API token" });
+                } else {
+                  res.send({ success: true, user: user, token });
+                }
+              });
+            } else {
+              logger.info("USER LOGGING IN");
+              logger.warn(req.user.username);
+              res.send({ success:true, user: user });
+            }
+          }
+        });
+      } else {
+        logger.debug("NOT authenticated");
+        res.send({status:"NOT authenticated", user})
+      }
+    })
   });
 
   // user want to login and use an API token instead of session cookies -- i.e. for mobile
