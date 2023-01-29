@@ -21,7 +21,12 @@ exports.getLoggedInUser = (req, res) => {
    * Relies on existing "requireLogin" to populate the user
    * To be used for checking login status and refreshing user on mobile
    */
-  res.send({success: true, user: req.user})
+  if(req.user){
+    res.send({success: true, user: req.user})
+  }else {
+    res.send({success: false, user: req.user})
+  }
+  // res.send({success: true, user: req.user})
 }
 
 exports.list = function(req, res) {
