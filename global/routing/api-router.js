@@ -7,13 +7,17 @@ let logger = global.logger;
 
 // helper functions
 
-function requireLogin({req, res, next}) {
-  next()
+function requireLogin({res, next}) {
+  return next()
 }
 
 
-function requireRole(role, {req, res, next}) {
-  next()
+function requireRole(role, params) {
+  const { req, next } = params;
+  if(req.user.hasRole(role)){
+    return next()
+  }
+
 }
 
 // export Yote resource API paths

@@ -66,26 +66,26 @@ module.exports = function(router, requireLogin, requireRole) {
 
   // - Create
   router.post('/api/users/register'     , users.register); // create and login
-  router.post('/api/users'              , (params) => requireRole('admin', params), users.create); // create without login
+  router.post('/api/users'              , (req, res, next) => requireRole('admin', {req, res, next}), users.create); // create without login
 
   // - Read
-  router.get('/api/users'               , (params) => requireRole('admin', params), users.list); // must be an 'admin' to see the list of users
-  router.get('/api/users/by-:refKey/:refId*'  , (params) => requireRole('admin', params), users.listByRefs);
-  router.get('/api/users/by-:refKey-list'    , (params) => requireRole('admin', params), users.listByValues);
-  router.get('/api/users/get-logged-in' , (params) => requireLogin(params), users.getLoggedInUser);
-  router.get('/api/users/:id'           , (params) => requireRole('admin', params), users.getById); // must be an 'admin' to see individual user info
+  router.get('/api/users'               , (req, res, next) => requireRole('admin', {req, res, next}), users.list); // must be an 'admin' to see the list of users
+  router.get('/api/users/by-:refKey/:refId*'  , (req, res, next) => requireRole('admin', {req, res, next}), users.listByRefs);
+  router.get('/api/users/by-:refKey-list'    , (req, res, next) => requireRole('admin', {req, res, next}), users.listByValues);
+  router.get('/api/users/get-logged-in' ,(req, res, next) => requireLogin({req, res, next}), users.getLoggedInUser);
+  router.get('/api/users/:id'           ,(req, res, next) => requireRole('admin', {req, res, next}), users.getById); // must be an 'admin' to see individual user info
 
   // - Update
-  router.put('/api/users/update-profile'     , (params) => requireLogin(params), users.updateProfile);
-  router.put('/api/users/:userId'      , (params) => requireLogin(params), users.update);
-  router.post('/api/users/password'    , (params) => requireLogin(params), users.changePassword);
+  router.put('/api/users/update-profile'     , (req, res, next) => requireLogin({req, res, next}), users.updateProfile);
+  router.put('/api/users/:userId'      , (req, res, next) => requireLogin({req, res, next}), users.update);
+  router.post('/api/users/password'    , (req, res, next) => requireLogin({req, res, next}), users.changePassword);
   router.post('/api/users/request-password-reset'          , users.requestPasswordReset);
   router.get('/api/users/check-reset-request/:resetHex'    , users.checkResetRequest);
   router.post('/api/users/reset-password'                 , users.resetPassword);
 
   // - Delete
   // NOTE: Be careful with this...
-  router.delete('/api/users/:userId'   , (params) => requireRole('admin', params), users.delete);
+  router.delete('/api/users/:userId'   , (req, res, next) => requireRole('admin', {req, res, next}), users.delete);
 
 
 }
