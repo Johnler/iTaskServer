@@ -7,14 +7,21 @@ let logger = global.logger;
 
 // helper functions
 
-function requireLogin({res, next}) {
-  return next()
+function requireLogin(params) {
+  const {req, res, next} = params
+  if(!req.user){
+    res.send({status: false, message: 'Required User Login.'})
+  }else {
+    return next()
+  }
 }
 
 
 function requireRole(role, params) {
-  const { req, next } = params;
-  if(req.user.hasRole(role)){
+  const { req, res, next } = params;
+  if(!req.user.hasRole(role)){
+    res.send({status: false, message: 'Required Admin role.'})
+  }else {
     return next()
   }
 
