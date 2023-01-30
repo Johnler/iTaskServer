@@ -156,7 +156,13 @@ exports.create = (req, res) => {
 }
 
 exports.update = (req, res) => {
-
+  const { body, params } = req
+  Flow.findByIdAndUpdate(params.id, {
+      name: body.name,
+      description: body.description,
+  }, (err, flow) => {
+    res.send({success: true, flow})
+  })
 }
 
 exports.delete = (req, res) => {
