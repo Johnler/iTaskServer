@@ -55,8 +55,11 @@ module.exports = function(router, requireLogin, requireRole) {
   });
 
   // user logout
-  router.post('/api/users/logout', (params) => requireLogin(params), function(req, res) {
+  router.post('/api/users/logout', (req, res, next) => requireLogin({req, res, next}), function(req, res) {
     // logout with token will not affect session status, and vice-versa
+    res.send({
+      success: true, message: 'Logout Success'
+    })
   });
 
 
