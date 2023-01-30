@@ -159,7 +159,15 @@ exports.create = (req, res) => {
 }
 
 exports.update = (req, res) => {
-
+  const { body, params } = req
+  Task.findByIdAndUpdate(params.id, {
+    description: body.description,
+    name: body.name,
+    complete: body.complete,
+    status: body.status
+  }, (err, task) => {
+    res.send({success: true, task})
+  })
 }
 
 exports.delete = (req, res) => {
