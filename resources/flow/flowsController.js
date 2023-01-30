@@ -12,7 +12,20 @@
 let Flow = require('mongoose').model('Flow');
 
 exports.list = (req, res) => {
-  Flow.find({}, (err, flows) => {
+  // Flow.find({}, (err, flows) => {
+  //   res.send({success: true,flows})
+  // })
+
+  Flow.aggregate([
+    {
+      $lookup: {
+        from: "tasks",
+        localField: "_id",
+        foreignField: "_flow",
+        as: "tasks"
+      }
+    }
+  ], (err, flows) => {
     res.send({success: true,flows})
   })
 }
