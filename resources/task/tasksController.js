@@ -154,7 +154,8 @@ exports.getDefault = (req, res) => {
 }
 
 exports.create = (req, res) => {
-
+  const { body } = req
+  Task.create(body)
 }
 
 exports.update = (req, res) => {
