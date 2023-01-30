@@ -12,7 +12,9 @@
 let Flow = require('mongoose').model('Flow');
 
 exports.list = (req, res) => {
-
+  Flow.find({}, (err, flows) => {
+    res.send({success: true,flows})
+  })
 }
 
 exports.listByValues = (req, res) => {
@@ -136,7 +138,8 @@ exports.getDefault = (req, res) => {
 }
 
 exports.create = (req, res) => {
-
+  const { body } = req
+  Flow.create(body)
 }
 
 exports.update = (req, res) => {
