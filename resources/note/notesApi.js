@@ -16,7 +16,8 @@ module.exports = function(router, requireLogin, requireRole) {
   // - Read
   router.get('/api/notes'                , notes.list);
   router.get('/api/notes/search'         , notes.search);
-  router.get('/api/notes/by-:refKey/:refId*'  , notes.listByRefs);
+  // router.get('/api/notes/by-:refKey/:refId*'  , notes.listByRefs);
+  router.get('/api/notes/by-:refKey/:refId*'  , notes.customList);
   router.get('/api/notes/by-:refKey-list'    , notes.listByValues);
   router.get('/api/notes/default'        , notes.getDefault);
   router.get('/api/notes/schema'         , (req, res, next) => requireRole('admin', {req, res, next}), notes.getSchema);

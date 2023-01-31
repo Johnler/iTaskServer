@@ -10,11 +10,50 @@
  */
 
 let Note = require('mongoose').model('Note');
+let mongoose = require('mongoose')
 
 exports.list = (req, res) => {
     Note.find({}, (err, notes) => {
     res.send({success: true,notes})
   })
+}
+
+exports.customList = (req, res) => {
+  
+  if(!req.params.refId) {
+    res.send({success: false, message: `Missing query param(s) specified by the ref: ${req.params.refKey}`});
+  } else {
+    Note.aggregate([
+      {
+        $match: {
+          [req.params.refKey]: mongoose.Types.ObjectId(req.params.refId)
+        }
+      },
+      {
+        $lookup: {
+          "from": "users",
+          "localField": "_user",
+          "foreignField": "_id",
+          "as": "users_info"
+        }
+      },
+      {
+        $unwind: "$users_info"
+      },
+      {
+        $project: {
+              "_id": "$users_info._id",
+              "firstname": "$users_info.firstName",
+              "lastname": "$users_info.lastName",
+              "content": "$content",
+              "created": "$created"
+        }
+      }
+
+    ], (err, notes) => {
+      res.send({success: true, notes})
+    })
+  }
 }
 
 exports.listByValues = (req, res) => {
