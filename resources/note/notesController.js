@@ -12,7 +12,9 @@
 let Note = require('mongoose').model('Note');
 
 exports.list = (req, res) => {
-
+    Note.find({}, (err, notes) => {
+    res.send({success: true,notes})
+  })
 }
 
 exports.listByValues = (req, res) => {
@@ -106,7 +108,13 @@ exports.getDefault = (req, res) => {
 }
 
 exports.create = (req, res) => {
- 
+ const { body } = req;
+ try {
+  Note.create(body)
+  res.send({success: true})
+ }catch(e){
+  res.send({success: false})
+ }
 }
 
 exports.update = (req, res) => {
