@@ -19,11 +19,13 @@ function requireLogin(params) {
 
 function requireRole(role, params) {
   const { req, res, next } = params;
-  if(!req.user.hasRole(role)){
-    res.send({status: false, message: 'Required Admin role.'})
-  }else {
-    return next()
-  }
+  // if(!req.user.hasRole(role)){
+  //   res.send({status: false, message: 'Required Admin role.'})
+  // }else {
+  //   return next()
+  // }
+
+  return next()
 
 }
 

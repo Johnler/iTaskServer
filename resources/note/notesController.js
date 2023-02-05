@@ -12,18 +12,24 @@
 let Note = require('mongoose').model('Note');
 let mongoose = require('mongoose')
 
-exports.list = (req, res) => {
-    Note.find({}, (err, notes) => {
-    res.send({success: true,notes})
-  })
+exports.list = async (req, res) => {
+  try {
+    const notes = await Note.find({})
+    return res.send({ success: true, notes })
+  } catch (errors){
+    logger.error("ERROR:");
+    logger.info(errors);
+    return res.send({success: false, message: "Internal Server Error."})
+  }
 }
 
-exports.customList = (req, res) => {
-  
-  if(!req.params.refId) {
-    res.send({success: false, message: `Missing query param(s) specified by the ref: ${req.params.refKey}`});
-  } else {
-    Note.aggregate([
+exports.customList = async (req, res) => {
+  if (!req.params.refId) {
+    return res.send({ success: false, message: `Missing query param(s) specified by the ref: ${req.params.refKey}` });
+  }
+
+  try {
+    const notes = await Note.aggregate([
       {
         $match: {
           [req.params.refKey]: mongoose.Types.ObjectId(req.params.refId)
@@ -42,17 +48,20 @@ exports.customList = (req, res) => {
       },
       {
         $project: {
-              "_id": "$users_info._id",
-              "firstname": "$users_info.firstName",
-              "lastname": "$users_info.lastName",
-              "content": "$content",
-              "created": "$created"
+          "_id": "$users_info._id",
+          "firstname": "$users_info.firstName",
+          "lastname": "$users_info.lastName",
+          "content": "$content",
+          "created": "$created"
         }
       }
 
-    ], (err, notes) => {
-      res.send({success: true, notes})
-    })
+    ])
+    res.send({ success: true, notes })
+  } catch (err) {
+    logger.error("ERROR:");
+    logger.info(err);
+    res.send({ success: false, message: "Internal Server Error" })
   }
 }
 
@@ -64,16 +73,16 @@ exports.listByValues = (req, res) => {
    * node default max request headers + uri size is 80kb.
    */
 
-  if(!req.query[req.params.refKey]) {
+  if (!req.query[req.params.refKey]) {
     // make sure the correct query params are included
-    res.send({success: false, message: `Missing query param(s) specified by the ref: ${req.params.refKey}`});
+    res.send({ success: false, message: `Missing query param(s) specified by the ref: ${req.params.refKey}` });
   } else {
-    Note.find({[req.params.refKey]: {$in: [].concat(req.query[req.params.refKey]) }}, (err, notes) => {
-        if(err || !notes) {
-          res.send({success: false, message: `Error querying for notes by ${[req.params.refKey]} list`, err});
-        } else  {
-          res.send({success: true, notes});
-        }
+    Note.find({ [req.params.refKey]: { $in: [].concat(req.query[req.params.refKey]) } }, (err, notes) => {
+      if (err || !notes) {
+        res.send({ success: false, message: `Error querying for notes by ${[req.params.refKey]} list`, err });
+      } else {
+        res.send({ success: true, notes });
+      }
     })
   }
 }
@@ -83,31 +92,30 @@ exports.listByRefs = (req, res) => {
    * NOTE: This let's us query by ANY string or pointer key by passing in a refKey and refId
    */
 
-   // build query
+  // build query
   let query = {
     [req.params.refKey]: req.params.refId === 'null' ? null : req.params.refId
   }
   // test for optional additional parameters
   const nextParams = req.params['0'];
-  if(nextParams.split("/").length % 2 == 0) {
+  if (nextParams.split("/").length % 2 == 0) {
     // can't have length be uneven, throw error
-    res.send({success: false, message: "Invalid parameter length"});
+    res.send({ success: false, message: "Invalid parameter length" });
   } else {
-    if(nextParams.length !== 0) {
-      for(let i = 1; i < nextParams.split("/").length; i+= 2) {
-        query[nextParams.split("/")[i]] = nextParams.split("/")[i+1] === 'null' ? null : nextParams.split("/")[i+1]
+    if (nextParams.length !== 0) {
+      for (let i = 1; i < nextParams.split("/").length; i += 2) {
+        query[nextParams.split("/")[i]] = nextParams.split("/")[i + 1] === 'null' ? null : nextParams.split("/")[i + 1]
       }
     }
     Note.find(query, (err, notes) => {
-      if(err || !notes) {
-        res.send({success: false, message: `Error retrieving notes by ${req.params.refKey}: ${req.params.refId}`});
+      if (err || !notes) {
+        res.send({ success: false, message: `Error retrieving notes by ${req.params.refKey}: ${req.params.refId}` });
       } else {
-        res.send({success: true, notes})
+        res.send({ success: true, notes })
       }
     })
   }
 }
-
 exports.search = (req, res) => {
 
 }
@@ -115,7 +123,7 @@ exports.search = (req, res) => {
 exports.getById = (req, res) => {
   logger.info('get note by id');
   Note.findById(req.params.id).exec((err, note) => {
-    if(err) {
+    if (err) {
       logger.error("ERROR:");
       logger.info(err);
       res.send({ success: false, message: err });
@@ -133,7 +141,7 @@ exports.getSchema = (req, res) => {
    * This is admin protected and useful for displaying REST api documentation
    */
   logger.info('get note full mongo schema object');
-  res.send({success: true, schema: Note.getSchema()});
+  res.send({ success: true, schema: Note.getSchema() });
 }
 
 
@@ -143,19 +151,30 @@ exports.getDefault = (req, res) => {
    * return the default object back to the Create components on the client-side.
    */
   logger.info('get note default object');
-  res.send({success: true, defaultObj: Note.getDefault()});
+  res.send({ success: true, defaultObj: Note.getDefault() });
 }
 
-exports.create = (req, res) => {
- const { body } = req;
- try {
-  Note.create(body)
-  res.send({success: true})
- }catch(e){
-  res.send({success: false})
- }
-}
+exports.create = async (req, res) => {
+  const { body } = req;
+  if (!body.content) {
+    return res.send({ success: false, message: `Missing body property`, note: body });
+  }
+  try {
+    const note = await Note.create(body)
+    if (note.errors) {
+      logger.error("ERROR:");
+      logger.info(errors);
+      throw note.errors
+    } else {
+      res.send({ success: true, note})
+    }
+  } catch (e) {
+    logger.error("ERROR:");
+    logger.info(e);
+    res.send({ success: false, message: "Internal Server Error" })
+  }
 
+}
 exports.update = (req, res) => {
  
 }

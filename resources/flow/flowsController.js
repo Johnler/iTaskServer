@@ -12,9 +12,6 @@
 let Flow = require('mongoose').model('Flow');
 
 exports.list = (req, res) => {
-  // Flow.find({}, (err, flows) => {
-  //   res.send({success: true,flows})
-  // })
 
   Flow.aggregate([
     {

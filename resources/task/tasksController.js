@@ -153,21 +153,41 @@ exports.getDefault = (req, res) => {
   res.send({success: true, defaultObj: Task.getDefault()});
 }
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
   const { body } = req
-  Task.create(body)
+  const { name } = body
+  if(!name){
+    logger.error("Name is required!")
+    return res.send({success: false, message: "Name is required!"})
+  }
+  try {
+    const task = await Task.create(body)
+    return res.send({success: true, task})
+  }catch(err){
+    logger.error('Error: ', err)
+    return res.send({success: false, message: "Internal Server Error!"})
+  }
 }
 
-exports.update = (req, res) => {
+exports.update = async (req, res) => {
   const { body, params } = req
-  Task.findByIdAndUpdate(params.id, {
-    description: body.description,
-    name: body.name,
-    complete: body.complete,
-    status: body.status
-  }, (err, task) => {
-    res.send({success: true, task})
-  })
+  const { name, complete, description, status } = body
+  if(!name) {
+    logger.error("Property is missing.")
+    return res.send({sucess:false,  message: "Name is required!"})
+  }
+  try{
+    const task = await Task.findByIdAndUpdate(params.id, {
+      description,
+      name,
+      complete,
+      status
+    })
+    return res.send({success: true, task})
+  } catch(err){
+    logger.error('Error: ', err)
+    return res.send({success: false, message: "Internal Server Error!"})
+  }
 }
 
 exports.delete = (req, res) => {
