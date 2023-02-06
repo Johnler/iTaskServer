@@ -10,21 +10,55 @@
  */
 
 let Flow = require('mongoose').model('Flow');
+let mongoose = require('mongoose')
 
-exports.list = (req, res) => {
-
-  Flow.aggregate([
-    {
-      $lookup: {
-        from: "tasks",
-        localField: "_id",
-        foreignField: "_flow",
-        as: "tasks"
+exports.list = async (req, res) => {
+  try {
+    const flows = await Flow.aggregate([
+      {
+        $lookup: {
+          from: "tasks",
+          localField: "_id",
+          foreignField: "_flow",
+          as: "tasks"
+        }
       }
-    }
-  ], (err, flows) => {
-    res.send({success: true,flows})
-  })
+    ])
+    return res.send({success: true, flows})
+  } catch (error) {
+    logger.error("ERROR:");
+    logger.info(error);
+    res.send({ success: false, message: "Internal Server Error" })
+  }
+
+}
+
+exports.getByIdWithTask = async (req, res) => {
+  if (!req.params.id) {
+    return res.send({ success: false, message: `Missing query param(s) specified by the ref: ${req.params.refKey}` });
+  }
+  try {
+    const flow = await Flow.aggregate([
+      {
+        $match: {
+          "_id": mongoose.Types.ObjectId(req.params.id)
+        }
+      },
+      {
+        $lookup: {
+          from: "tasks",
+          localField: "_id",
+          foreignField: "_flow",
+          as: "tasks"
+        }
+      }
+    ])
+    return res.send({success: true, flow: flow[0]})
+  } catch (err){
+    logger.error("ERROR:");
+    logger.info(err);
+    res.send({ success: false, message: "Internal Server Error" })
+  }
 }
 
 exports.listByValues = (req, res) => {

@@ -183,7 +183,7 @@ exports.update = async (req, res) => {
       complete,
       status
     })
-    return res.send({success: true, task})
+    return res.send({success: true, task: body})
   } catch(err){
     logger.error('Error: ', err)
     return res.send({success: false, message: "Internal Server Error!"})

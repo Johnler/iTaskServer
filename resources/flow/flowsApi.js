@@ -20,7 +20,8 @@ module.exports = function(router, requireLogin, requireRole) {
   router.get('/api/flows/by-:refKey-list'    , flows.listByValues);
   router.get('/api/flows/default'        , flows.getDefault);
   router.get('/api/flows/schema'         , (req, res, next) => requireRole('admin', {req, res, next}), flows.getSchema);
-  router.get('/api/flows/:id'            , flows.getById);
+  router.get('/api/flows/:id'            , flows.getByIdWithTask);
+  // router.get('/api/flows/:id'            , flows.getById);
 
   // - Update
   router.put('/api/flows/:id'            , (req, res, next) => requireLogin({req, res, next}), flows.update); // must login by default
