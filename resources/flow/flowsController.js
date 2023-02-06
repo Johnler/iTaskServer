@@ -147,9 +147,23 @@ exports.getDefault = (req, res) => {
   res.send({success: true, defaultObj: Flow.getDefault()});
 }
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
   const { body } = req
-  Flow.create(body)
+  try {
+    const flow = await Flow.create(body)
+    if(flow.error){
+      logger.error("ERROR:");
+      logger.info(errors);
+      throw flow.errors
+    } else {
+      return res.send({success: true, flow})
+    }
+    
+  } catch (error) {
+    logger.error("ERROR:");
+    logger.info(error);
+    res.send({ success: false, message: "Internal Server Error" })
+  }
 }
 
 exports.update = (req, res) => {
