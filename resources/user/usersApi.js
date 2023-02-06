@@ -11,12 +11,14 @@ let logger = global.logger;
 module.exports = function(router, requireLogin, requireRole) {
 
   // user login and use session cookies
-  router.post('/api/users/login', function(req, res, next) {
+  router.post('/api/users/login', async function(req, res, next) {
     const { username, password } = req.body;
     var projection = {
       username: 1, password_salt: 1, password_hash: 1, roles: 1
     }
-    User.findOne({username:username}, projection).exec((err, user) => {
+
+    try {
+      const user = await User.findOne({username:username}, projection)
       if(user && user.authenticate(password)) {
         logger.debug("authenticated!");
         req.login(user, function(err) {
@@ -30,23 +32,27 @@ module.exports = function(router, requireLogin, requireRole) {
               logger.info("create api token for mobile user");
               user.createToken(function(err, token) {
                 if(err || !token) {
-                  res.send({ success: false, message: "unable to generate user API token" });
+                  return res.send({ success: false, message: "unable to generate user API token" });
                 } else {
-                  res.send({ success: true, user: user, token });
+                  return res.send({ success: true, user: user, token });
                 }
               });
             } else {
               logger.info("USER LOGGING IN");
               logger.warn(req.user.username);
-              res.send({ success:true, user: user });
+              return res.send({ success:true, user: user });
             }
           }
         });
       } else {
         logger.debug("NOT authenticated");
-        res.send({status:"NOT authenticated", user})
+        return res.send({status:"NOT authenticated", user})
       }
-    })
+    } catch (error) {
+      logger.error("ERROR LOGGING IN NEW USER");
+      logger.error(error);
+      return res.send({status:"NOT authenticated", message: "Internal Server Error!"})
+    }
   });
 
   // user want to login and use an API token instead of session cookies -- i.e. for mobile
