@@ -166,14 +166,20 @@ exports.create = async (req, res) => {
   }
 }
 
-exports.update = (req, res) => {
+exports.update = async(req, res) => {
   const { body, params } = req
-  Flow.findByIdAndUpdate(params.id, {
-      name: body.name,
-      description: body.description,
-  }, (err, flow) => {
-    res.send({success: true, flow})
-  })
+  const { name, description } = body;
+  try {
+    const flow = await Flow.findByIdAndUpdate(params.id, {
+      name,
+      description
+    })
+    return res.send({success: true, flow: body})
+  } catch (error) {
+    logger.error("ERROR:");
+    logger.info(error);
+    res.send({ success: false, message: "Internal Server Error" })
+  }
 }
 
 exports.delete = (req, res) => {
