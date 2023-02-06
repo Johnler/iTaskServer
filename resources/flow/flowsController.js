@@ -34,6 +34,7 @@ exports.list = async (req, res) => {
 }
 
 exports.getByIdWithTask = async (req, res) => {
+  logger.info("HOOII")
   if (!req.params.id) {
     return res.send({ success: false, message: `Missing query param(s) specified by the ref: ${req.params.refKey}` });
   }
